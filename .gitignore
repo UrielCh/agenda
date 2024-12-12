@@ -134,3 +134,5 @@ dist
 dist
 .nyc_output
 coverage
+pnpm-lock.yaml
+package-lock.json

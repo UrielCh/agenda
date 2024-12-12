@@ -8,7 +8,8 @@ import {
 	MongoClientOptions,
 	ObjectId,
 	Sort,
-	UpdateFilter
+	UpdateFilter,
+	WithId
 } from 'mongodb';
 import type { Job, JobWithId } from './Job';
 import type { Agenda } from './index';
@@ -115,10 +116,10 @@ export class JobDbRepository {
 		const resp = await this.collection.findOneAndUpdate(
 			criteria as Filter<IJobParameters>,
 			update,
-			options
+			options // of { ...options, includeResultMetadata: true } to keep old behaviour and then return resp?.value
 		);
 
-		return resp?.value || undefined;
+		return resp || undefined;
 	}
 
 	async getNextJobToRun(
@@ -126,7 +127,7 @@ export class JobDbRepository {
 		nextScanAt: Date,
 		lockDeadline: Date,
 		now: Date = new Date()
-	): Promise<IJobParameters | undefined> {
+	): Promise<WithId<IJobParameters> | undefined> {
 		/**
 		 * Query used to find job to run
 		 */
@@ -162,10 +163,10 @@ export class JobDbRepository {
 		const result = await this.collection.findOneAndUpdate(
 			JOB_PROCESS_WHERE_QUERY,
 			JOB_PROCESS_SET_QUERY,
-			JOB_RETURN_QUERY
+			JOB_RETURN_QUERY // of { ...JOB_RETURN_QUERY, includeResultMetadata: true } to keep old behaviour and then return result?.value
 		);
 
-		return result.value || undefined;
+		return result || undefined;
 	}
 
 	async connect(): Promise<void> {
@@ -313,9 +314,9 @@ export class JobDbRepository {
 				const result = await this.collection.findOneAndUpdate(
 					{ _id: id, name: props.name },
 					update,
-					{ returnDocument: 'after' }
+					{ returnDocument: 'after' } // or { returnDocument: 'after', includeResultMetadata: true } to keep old behaviour and then return result?.value
 				);
-				return this.processDbResult(job, result.value as IJobParameters<DATA>);
+				return this.processDbResult(job, result as IJobParameters<DATA>);
 			}
 
 			if (props.type === 'single') {
@@ -352,7 +353,8 @@ export class JobDbRepository {
 					update,
 					{
 						upsert: true,
-						returnDocument: 'after'
+						returnDocument: 'after',
+						includeResultMetadata: true, // Keep old behaviour to access result.lastErrorObject?.updatedExisting
 					}
 				);
 				log(
@@ -379,7 +381,7 @@ export class JobDbRepository {
 					upsert: true,
 					returnDocument: 'after'
 				});
-				return this.processDbResult(job, result.value as IJobParameters<DATA>);
+				return this.processDbResult(job, result as IJobParameters<DATA>);
 			}
 
 			// If all else fails, the job does not exist yet so we just insert it into MongoDB

@@ -342,12 +342,12 @@ describe('Agenda', () => {
 						.find({
 							name: 'unique job'
 						})
-						.toArray((err, jobs) => {
-							if (err) {
-								throw err;
-							}
-
+						.toArray()
+						.then(jobs => {
 							expect(jobs).to.have.length(1);
+						})
+						.catch(err => {
+							throw err;
 						});
 				});
 
@@ -390,18 +390,14 @@ describe('Agenda', () => {
 
 					expect(job1.attrs.nextRunAt!.toISOString()).to.equal(job2.attrs.nextRunAt!.toISOString());
 
-					mongoDb
-						.collection('agendaJobs')
-						.find({
-							name: 'unique job'
-						})
-						.toArray((err, jobs) => {
-							if (err) {
-								throw err;
-							}
-
-							expect(jobs).to.have.length(1);
-						});
+					const jobs = await mongoDb
+					.collection('agendaJobs')
+					.find({
+						name: 'unique job'
+					})
+					.toArray();
+				
+					expect(jobs).to.have.length(1);
 				});
 			});
 
@@ -438,18 +434,14 @@ describe('Agenda', () => {
 						.schedule(time)
 						.save();
 
-					mongoDb
-						.collection('agendaJobs')
-						.find({
-							name: 'unique job'
-						})
-						.toArray((err, jobs) => {
-							if (err) {
-								throw err;
-							}
 
-							expect(jobs).to.have.length(2);
-						});
+					const jobs = await mongoDb
+					.collection('agendaJobs')
+					.find({
+						name: 'unique job'
+					})
+					.toArray();
+					expect(jobs).to.have.length(2);
 				});
 			});
 		});
