@@ -116,10 +116,10 @@ export class JobDbRepository {
 		const resp = await this.collection.findOneAndUpdate(
 			criteria as Filter<IJobParameters>,
 			update,
-			options // of { ...options, includeResultMetadata: true } to keep old behaviour and then return resp?.value
+			// options
+			{ ...options, includeResultMetadata: true } // to keep old behaviour and then return resp?.value
 		);
-
-		return resp || undefined;
+		return resp?.value || undefined;
 	}
 
 	async getNextJobToRun(
@@ -163,10 +163,11 @@ export class JobDbRepository {
 		const result = await this.collection.findOneAndUpdate(
 			JOB_PROCESS_WHERE_QUERY,
 			JOB_PROCESS_SET_QUERY,
-			JOB_RETURN_QUERY // of { ...JOB_RETURN_QUERY, includeResultMetadata: true } to keep old behaviour and then return result?.value
+			// JOB_RETURN_QUERY
+			{ ...JOB_RETURN_QUERY, includeResultMetadata: true } // to keep old behaviour and then return result?.value
 		);
 
-		return result || undefined;
+		return result?.value || undefined;
 	}
 
 	async connect(): Promise<void> {
@@ -314,9 +315,10 @@ export class JobDbRepository {
 				const result = await this.collection.findOneAndUpdate(
 					{ _id: id, name: props.name },
 					update,
-					{ returnDocument: 'after' } // or { returnDocument: 'after', includeResultMetadata: true } to keep old behaviour and then return result?.value
+					// { returnDocument: 'after' }
+					{ returnDocument: 'after', includeResultMetadata: true } // to keep old behaviour and then return result?.value
 				);
-				return this.processDbResult(job, result as IJobParameters<DATA>);
+				return this.processDbResult(job, result?.value as IJobParameters<DATA>);
 			}
 
 			if (props.type === 'single') {
@@ -381,7 +383,7 @@ export class JobDbRepository {
 					upsert: true,
 					returnDocument: 'after'
 				});
-				return this.processDbResult(job, result as IJobParameters<DATA>);
+				return this.processDbResult(job, result.value as IJobParameters<DATA>);
 			}
 
 			// If all else fails, the job does not exist yet so we just insert it into MongoDB
