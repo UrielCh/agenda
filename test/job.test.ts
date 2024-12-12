@@ -1031,7 +1031,7 @@ describe('Job', () => {
 			await agenda.stop();
 		});
 
-		it('does not on-the-fly lock more than definition.lockLimit jobs', async () => {
+		it('does not on-the-fly lock more than definition.lockLimit jobs [Randomly-failing]', async () => {
 			agenda.define('lock job', (_job, _cb) => {}, { lockLimit: 1 }); // eslint-disable-line no-unused-vars
 
 			await agenda.start();
@@ -1604,7 +1604,7 @@ describe('Job', () => {
 		expect(await job.isRunning()).to.be.equal(true);
 	});
 
-	it('should not run job if is has been removed', async () => {
+	it('should not run job if is has been removed [Randomly-failing]', async () => {
 		let executed = false;
 		agenda.define('test', async () => {
 			executed = true;
